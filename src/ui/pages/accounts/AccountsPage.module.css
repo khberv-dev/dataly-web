@@ -1,0 +1,44 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account {
+  overflow: hidden;
+}
+
+.accountHeader {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 16px;
+  text-align: left;
+}
+
+.accountInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--g-color-text-primary);
+}
+
+.campaigns {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--g-color-line-generic);
+}
+
+.campaignHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 10px;
+}
