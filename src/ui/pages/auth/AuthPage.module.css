@@ -1,45 +1,45 @@
 .page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
 }
 
 .card {
-  width: 100%;
-  max-width: 380px;
-  padding: 32px;
+    width: 100%;
+    max-width: 380px;
+    padding: 32px;
 }
 
 .title {
-  margin-bottom: 24px;
-  display: block;
+    margin-bottom: 24px;
+    display: block;
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .footer {
-  margin-top: 20px;
-  display: block;
-  text-align: center;
+    margin-top: 20px;
+    display: block;
+    text-align: center;
 }
 
 .link {
-  color: var(--g-color-text-link);
-  text-decoration: none;
+    color: var(--g-color-text-link);
+    text-decoration: none;
 }
 
 .link:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
