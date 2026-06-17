@@ -22,14 +22,119 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    overflow-x: auto;
 }
 
+.tableHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumbBack {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: var(--g-color-text-link);
+    font-size: var(--g-text-subheader-2-font-size);
+    font-weight: var(--g-text-subheader-2-font-weight);
+}
+
+.breadcrumbBack:hover {
+    color: var(--g-color-text-link-hover);
+}
+
+.tableScroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
+}
+
+.tableContainer {
+    border-radius: 8px;
+}
+
+/*
+ * Gravity UI's .g-table and .g-table__scroll-container both have overflow:auto,
+ * which makes them the sticky scroll containers instead of .tableScroll.
+ * Setting them to overflow:visible delegates all scrolling to .tableScroll,
+ * so position:sticky on the first column and total row works correctly.
+ */
+.tableContainer :global(.g-table),
+.tableContainer :global(.g-table__scroll-container) {
+    overflow: visible;
+}
+
+/*
+ * Sticky first column: enforce a solid opaque background so scrolled content
+ * never bleeds through. The box-shadow adds a right separator that is painted
+ * on top of adjacent cells regardless of their z-index.
+ */
+.tableContainer :global(.g-table .g-table__cell_sticky_start) {
+    background: var(--g-color-base-background);
+    box-shadow: 1px 0 0 var(--g-color-line-generic), 6px 0 10px -4px rgba(0, 0, 0, 0.15);
+}
+
+/* Sticky total row */
 .totalRow {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
     font-weight: 600;
 }
 
-.totalRow td {
-    background: var(--g-color-base-simple-hover-solid);
+.tableContainer .totalRow :global(.g-table__cell) {
+    background: var(--g-color-base-simple-hover-solid) !important;
     border-top: 2px solid var(--g-color-line-generic);
+    border-bottom: none;
+}
+
+/*
+ * Apply hover background to individual <td> cells, not the <tr>.
+ * A row-level background-color paints in the table-row layer and bleeds
+ * behind the sticky column regardless of z-index. Cell-level backgrounds
+ * are opaque per-cell, so the sticky column always covers what's behind it.
+ */
+.tableContainer :global(.g-table__body .g-table__row_interactive:hover) {
+    background-color: transparent !important;
+}
+
+.tableContainer :global(.g-table__body .g-table__row_interactive:hover .g-table__cell) {
+    background: var(--g-color-base-brand);
+    cursor: pointer;
+}
+
+/* Sortable column header button */
+.sortBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    font-weight: var(--g-text-accent-font-weight);
+    color: inherit;
+    white-space: nowrap;
+}
+
+.sortBtn:hover {
+    color: var(--g-color-text-primary);
+}
+
+.sortIdle {
+    opacity: 0.3;
+    font-size: 10px;
+}
+
+.sortActive {
+    font-size: 10px;
 }
