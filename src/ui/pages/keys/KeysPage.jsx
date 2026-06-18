@@ -1,15 +1,17 @@
-import {useState} from 'react'
+import {useCallback, useLayoutEffect, useState} from 'react'
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {Button, Card, Label, Loader, Text} from '@gravity-ui/uikit'
 import {Pencil, Plus, Trash2} from 'lucide-react'
 import {keysApi} from '@/services/api/keys'
 import {KeyDialog} from '@/ui/dialogs/KeyDialog'
+import {useHeaderActions} from '@/providers/HeaderActionsProvider'
 import styles from './KeysPage.module.css'
 
 const TYPE_THEME = {meta: 'info', amocrm: 'warning'}
 
 export function KeysPage() {
     const qc = useQueryClient()
+    const setActions = useHeaderActions()
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editing, setEditing] = useState(null)
 
@@ -23,10 +25,20 @@ export function KeysPage() {
         onSuccess: () => qc.invalidateQueries({queryKey: ['keys']}),
     })
 
-    function openAdd() {
+    const openAdd = useCallback(() => {
         setEditing(null)
         setDialogOpen(true)
-    }
+    }, [])
+
+    useLayoutEffect(() => {
+        setActions(
+            <Button view="action" size="s" onClick={openAdd} disabled={keys.length >= 2}>
+                <Plus size={14}/>
+                Add key
+            </Button>
+        )
+        return () => setActions(null)
+    }, [keys.length, openAdd, setActions])
 
     function openEdit(key) {
         setEditing(key)
@@ -35,14 +47,6 @@ export function KeysPage() {
 
     return (
         <div>
-            <div className={styles.header}>
-                <Text variant="header-2">API Keys</Text>
-                <Button view="action" size="s" onClick={openAdd} disabled={keys.length >= 2}>
-                    <Plus size={14}/>
-                    Add key
-                </Button>
-            </div>
-
             {isLoading ? (
                 <Loader size="m"/>
             ) : keys.length === 0 ? (

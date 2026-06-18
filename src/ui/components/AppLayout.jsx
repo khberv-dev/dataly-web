@@ -1,8 +1,9 @@
-import {NavLink, Outlet, useNavigate} from 'react-router-dom'
+import {NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom'
 import {Button, Text} from '@gravity-ui/uikit'
 import {Key, LayoutDashboard, LogOut, Moon, Sun} from 'lucide-react'
 import {useAuth} from '@/providers/AuthProvider'
 import {useTheme} from '@/providers/ThemeProvider'
+import {useHeaderActionsState} from '@/providers/HeaderActionsProvider'
 import styles from './AppLayout.module.css'
 
 const NAV_ITEMS = [
@@ -13,7 +14,10 @@ const NAV_ITEMS = [
 export function AppLayout() {
     const {user, logout} = useAuth()
     const {theme, toggle} = useTheme()
+    const actions = useHeaderActionsState()
     const navigate = useNavigate()
+    const {pathname} = useLocation()
+    const pageTitle = NAV_ITEMS.find((item) => item.to === pathname)?.label ?? ''
 
     function handleLogout() {
         logout()
@@ -55,9 +59,15 @@ export function AppLayout() {
                     </div>
                 </div>
             </aside>
-            <main className={styles.main}>
-                <Outlet/>
-            </main>
+            <div className={styles.body}>
+                <header className={styles.topBar}>
+                    <Text variant="header-2">{pageTitle}</Text>
+                    {actions}
+                </header>
+                <main className={styles.main}>
+                    <Outlet/>
+                </main>
+            </div>
         </div>
     )
 }

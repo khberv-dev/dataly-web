@@ -5,6 +5,8 @@ import queryClient from '@/services/queryClient'
 import toaster from '@/services/toaster'
 import {ThemeProvider} from '@/providers/ThemeProvider'
 import {AuthProvider} from '@/providers/AuthProvider'
+import {AccountProvider} from '@/providers/AccountProvider'
+import {HeaderActionsProvider} from '@/providers/HeaderActionsProvider'
 import {RequireAuth} from '@/ui/components/RequireAuth'
 import {AppLayout} from '@/ui/components/AppLayout'
 import {LoginPage} from '@/ui/pages/auth/LoginPage'
@@ -26,7 +28,11 @@ export default function App() {
                                 <Route
                                     element={
                                         <RequireAuth>
-                                            <AppLayout/>
+                                            <AccountProvider>
+                                                <HeaderActionsProvider>
+                                                    <AppLayout/>
+                                                </HeaderActionsProvider>
+                                            </AccountProvider>
                                         </RequireAuth>
                                     }
                                 >

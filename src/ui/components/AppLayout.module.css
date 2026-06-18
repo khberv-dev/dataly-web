@@ -62,8 +62,29 @@
     gap: 4px;
 }
 
+.body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.topBar {
+    height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--g-color-line-generic);
+}
+
+
 .main {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 24px;
 }

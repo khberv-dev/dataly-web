@@ -1,7 +1,9 @@
-import {useMemo, useState} from 'react'
+import {useLayoutEffect, useMemo, useState} from 'react'
 import {useQuery} from '@tanstack/react-query'
-import {Loader, SegmentedRadioGroup, Select, Table, Text} from '@gravity-ui/uikit'
+import {Breadcrumbs, SegmentedRadioGroup, Select, Skeleton, Table, Text} from '@gravity-ui/uikit'
 import {marketingApi} from '@/services/api/marketing'
+import {useAccount} from '@/providers/AccountProvider'
+import {useHeaderActions} from '@/providers/HeaderActionsProvider'
 import styles from './DashboardPage.module.css'
 
 const UZS_PER_USD = 12000
@@ -80,16 +82,34 @@ function computeTotal(rows) {
 }
 
 export function DashboardPage() {
-    const [accountId, setAccountId] = useState(null)
+    const {accountId, setAccountId} = useAccount()
+    const setActions = useHeaderActions()
     const [level, setLevel] = useState('campaigns')
-    const [campaignFilter, setCampaignFilter] = useState(null) // {id, title}
-    const [adsetFilter, setAdsetFilter] = useState(null)       // {id, title}
+    const [campaignFilter, setCampaignFilter] = useState(null)
+    const [adsetFilter, setAdsetFilter] = useState(null)
     const [sort, setSort] = useState({column: 'spendUsd', order: 'desc'})
 
     const {data: accounts = [], isLoading: loadingAccounts} = useQuery({
         queryKey: ['marketing-accounts'],
         queryFn: marketingApi.accounts,
     })
+
+    useLayoutEffect(() => {
+        setActions(
+            loadingAccounts ? (
+                <Skeleton className={styles.selectSkeleton}/>
+            ) : (
+                <Select
+                    options={accounts.map((a) => ({value: a.id, content: a.name}))}
+                    value={accountId ? [accountId] : []}
+                    onUpdate={([v]) => setAccountId(v)}
+                    placeholder="Select account…"
+                    size="m"
+                />
+            )
+        )
+        return () => setActions(null)
+    }, [accounts, accountId, loadingAccounts, setAccountId, setActions])
 
     const useAdsByAdset = level === 'ads' && !!adsetFilter
     const {data: rows = [], isLoading: loadingRows} = useQuery({
@@ -164,83 +184,51 @@ export function DashboardPage() {
 
     return (
         <div className={styles.page}>
-            <Text variant="header-2" className={styles.heading}>Dashboard</Text>
-
-            <div className={styles.accountRow}>
-                <label className={styles.field}>
-                    <Text variant="body-2" color="secondary">Ad account</Text>
-                    {loadingAccounts ? (
-                        <Loader size="s"/>
-                    ) : (
-                        <Select
-                            options={accounts.map((a) => ({value: a.id, content: a.name}))}
-                            value={accountId ? [accountId] : []}
-                            onUpdate={([v]) => setAccountId(v)}
-                            placeholder="Select account…"
-                            size="l"
-                            width="max"
-                        />
-                    )}
-                </label>
-            </div>
-
             {accountId && (
                 <div className={styles.tableWrap}>
-                    <div className={styles.tableHeader}>
-                        {campaignFilter || adsetFilter ? (
-                            <div className={styles.breadcrumb}>
-                                <button className={styles.breadcrumbBack} onClick={() => handleLevelChange('campaigns')}>
-                                    Campaigns
-                                </button>
+                    <div className={styles.tableBox}>
+                        <div className={styles.tableHeader}>
+                            <Breadcrumbs onAction={(key) => handleLevelChange(key)}>
+                                <Breadcrumbs.Item key="campaigns">Campaigns</Breadcrumbs.Item>
                                 {campaignFilter && (
-                                    <>
-                                        <Text variant="body-2" color="secondary">/</Text>
-                                        {adsetFilter ? (
-                                            <button className={styles.breadcrumbBack} onClick={() => handleLevelChange('adsets')}>
-                                                {campaignFilter.title}
-                                            </button>
-                                        ) : (
-                                            <Text variant="body-2">{campaignFilter.title}</Text>
-                                        )}
-                                    </>
+                                    <Breadcrumbs.Item key="adsets">{campaignFilter.title}</Breadcrumbs.Item>
                                 )}
                                 {adsetFilter && (
-                                    <>
-                                        <Text variant="body-2" color="secondary">/</Text>
-                                        <Text variant="body-2">{adsetFilter.title}</Text>
-                                    </>
+                                    <Breadcrumbs.Item key="ads">{adsetFilter.title}</Breadcrumbs.Item>
                                 )}
-                            </div>
-                        ) : (
-                            <Text variant="subheader-2">{LEVELS.find((l) => l.value === level)?.label}</Text>
-                        )}
-                        <SegmentedRadioGroup
-                            value={level}
-                            onUpdate={handleLevelChange}
-                            options={LEVELS}
-                            size="m"
-                        />
-                    </div>
-
-                    {loadingRows ? (
-                        <Loader size="m"/>
-                    ) : sortedRows.length === 0 ? (
-                        <Text color="secondary">No data for this account.</Text>
-                    ) : (
-                        <div className={styles.tableScroll}>
-                            <div className={styles.tableContainer}>
-                                <Table
-                                    data={tableData}
-                                    columns={columns}
-                                    onRowClick={handleRowClick}
-                                    getRowDescriptor={(row) => ({
-                                        interactive: !row.isTotal,
-                                        classNames: row.isTotal ? [styles.totalRow] : [],
-                                    })}
-                                />
-                            </div>
+                            </Breadcrumbs>
+                            <SegmentedRadioGroup
+                                value={level}
+                                onUpdate={handleLevelChange}
+                                options={LEVELS}
+                                size="m"
+                            />
                         </div>
-                    )}
+
+                        {loadingRows ? (
+                            <div className={styles.skeletonRows}>
+                                {Array.from({length: 8}).map((_, i) => (
+                                    <Skeleton key={i} className={styles.skeletonRow}/>
+                                ))}
+                            </div>
+                        ) : sortedRows.length === 0 ? (
+                            <Text color="secondary">No data for this account.</Text>
+                        ) : (
+                            <div className={styles.tableScroll}>
+                                <div className={styles.tableContainer}>
+                                    <Table
+                                        data={tableData}
+                                        columns={columns}
+                                        onRowClick={handleRowClick}
+                                        getRowDescriptor={(row) => ({
+                                            interactive: !row.isTotal,
+                                            classNames: row.isTotal ? [styles.totalRow] : [],
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
