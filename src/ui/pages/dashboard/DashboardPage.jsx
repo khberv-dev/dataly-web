@@ -1,6 +1,8 @@
 import {useLayoutEffect, useMemo, useState} from 'react'
 import {useQuery} from '@tanstack/react-query'
 import {Breadcrumbs, SegmentedRadioGroup, Select, Skeleton, Table, Text} from '@gravity-ui/uikit'
+import {RangeDatePicker} from '@gravity-ui/date-components'
+import {dateTime} from '@gravity-ui/date-utils'
 import {marketingApi} from '@/services/api/marketing'
 import {useAccount} from '@/providers/AccountProvider'
 import {useHeaderActions} from '@/providers/HeaderActionsProvider'
@@ -10,6 +12,13 @@ const UZS_PER_USD = 12000
 const pct = (v) => (v > 0 ? `${v.toFixed(1)}%` : '—')
 const usd = (v) => (v > 0 ? `$${v.toFixed(2)}` : '—')
 const num = (v) => v?.toLocaleString() ?? '0'
+
+function formatDate(d) {
+    return d.toISOString().split('T')[0]
+}
+
+const today = formatDate(new Date())
+const defaultFrom = formatDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
 
 const LEVELS = [
     {value: 'campaigns', label: 'Campaigns'},
@@ -84,6 +93,8 @@ function computeTotal(rows) {
 export function DashboardPage() {
     const {accountId, setAccountId} = useAccount()
     const setActions = useHeaderActions()
+    const [dateFrom, setDateFrom] = useState(defaultFrom)
+    const [dateTo, setDateTo] = useState(today)
     const [level, setLevel] = useState('campaigns')
     const [campaignFilter, setCampaignFilter] = useState(null)
     const [adsetFilter, setAdsetFilter] = useState(null)
@@ -96,29 +107,43 @@ export function DashboardPage() {
 
     useLayoutEffect(() => {
         setActions(
-            loadingAccounts ? (
-                <Skeleton className={styles.selectSkeleton}/>
-            ) : (
-                <Select
-                    options={accounts.map((a) => ({value: a.id, content: a.name}))}
-                    value={accountId ? [accountId] : []}
-                    onUpdate={([v]) => setAccountId(v)}
-                    placeholder="Select account…"
+            <div className={styles.headerActions}>
+                <RangeDatePicker
+                    value={{
+                        start: dateTime({input: dateFrom}),
+                        end: dateTime({input: dateTo}),
+                    }}
+                    onUpdate={(range) => {
+                        setDateFrom(range.start.format('YYYY-MM-DD'))
+                        setDateTo(range.end.format('YYYY-MM-DD'))
+                    }}
+                    format="D MMM YYYY"
                     size="m"
                 />
-            )
+                {loadingAccounts ? (
+                    <Skeleton className={styles.selectSkeleton}/>
+                ) : (
+                    <Select
+                        options={accounts.map((a) => ({value: a.id, content: a.name}))}
+                        value={accountId ? [accountId] : []}
+                        onUpdate={([v]) => setAccountId(v)}
+                        placeholder="Select account…"
+                        size="m"
+                    />
+                )}
+            </div>
         )
         return () => setActions(null)
-    }, [accounts, accountId, loadingAccounts, setAccountId, setActions])
+    }, [accounts, accountId, dateFrom, dateTo, loadingAccounts, setAccountId, setActions, setDateFrom, setDateTo])
 
     const useAdsByAdset = level === 'ads' && !!adsetFilter
     const {data: rows = [], isLoading: loadingRows} = useQuery({
         queryKey: useAdsByAdset
-            ? ['marketing-ads-by-adset', accountId, adsetFilter.id]
-            : [`marketing-${level}`, accountId],
+            ? ['marketing-ads-by-adset', accountId, adsetFilter.id, dateFrom, dateTo]
+            : [`marketing-${level}`, accountId, dateFrom, dateTo],
         queryFn: useAdsByAdset
-            ? () => marketingApi.adsByAdset(accountId, adsetFilter.id)
-            : () => marketingApi[level](accountId),
+            ? () => marketingApi.adsByAdset(accountId, adsetFilter.id, dateFrom, dateTo)
+            : () => marketingApi[level](accountId, dateFrom, dateTo),
         enabled: !!accountId,
     })
 

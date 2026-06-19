@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gravity-ui/date-components": "^3.4.2",
+    "@gravity-ui/date-utils": "^2.7.0",
     "@gravity-ui/icons": "^2.18.0",
     "@gravity-ui/uikit": "^7.41.0",
     "@tanstack/react-query": "^5.100.14",

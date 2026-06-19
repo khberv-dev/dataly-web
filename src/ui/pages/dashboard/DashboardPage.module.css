@@ -5,6 +5,13 @@
     flex-direction: column;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
 .selectSkeleton {
     width: 200px;
     height: 28px;
